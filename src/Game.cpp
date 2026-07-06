@@ -10,6 +10,7 @@
 #include "BreakablePlatform.hpp"
 #include "MainMenu.hpp"
 #include "ScoreManager.hpp"
+#include "GameOverMenu.hpp"
 #include <algorithm>
 
 Game::Game() : 
@@ -27,6 +28,7 @@ Game::Game() :
     textureManager.loadResource("platform_broken", "assets/broken_platform.png");
     textureManager.loadResource("btn_start", "assets/start_button.png");
     textureManager.loadResource("btn_restart", "assets/restart_button.png");
+    textureManager.loadResource("btn_menu", "assets/menu_button.png");
     textureManager.loadResource("bg", "assets/background.png");
 
     fontManager.loadResource("main_font", "fonts/ariblk.ttf");
@@ -44,9 +46,10 @@ Game::Game() :
     );
     mainMenu->updateHighScore(scoreManager->getHighScore());
 
-    player = std::make_unique<Player>(
-        textureManager.getResource("doodle_left"), 
-        textureManager.getResource("doodle_right")
+    gameOverMenu = std::make_unique<GameOverMenu>(
+        fontManager.getResource("main_font"),
+        textureManager.getResource("btn_restart"),
+        textureManager.getResource("btn_menu")
     );
 
     resetGame();
@@ -56,8 +59,12 @@ Game::~Game() = default;
 
 void Game::resetGame() {
     platforms.clear();
-    player->setY(ScoreConfig::STARTING_Y); 
-    player->jump(); 
+    
+    player = std::make_unique<Player>(
+        textureManager.getResource("doodle_left"), 
+        textureManager.getResource("doodle_right")
+    );
+    
     worldManager.generateInitialWorld(platforms);
     scoreManager->resetCurrentScore();
 }
@@ -90,8 +97,15 @@ void Game::processEvents() {
             }
         } 
         else if (currentState == GameState::GameOver) {
-            currentState = GameState::Playing;
-            resetGame();
+            if (gameOverMenu->isRestartClicked(window, gameView, event)) {
+                currentState = GameState::Playing;
+                resetGame();
+            }
+            else if (gameOverMenu->isMenuClicked(window, gameView, event)) {
+                currentState = GameState::Menu;
+                resetGame();
+                mainMenu->updateHighScore(scoreManager->getHighScore());
+            }
         }
     }
 }
@@ -126,9 +140,11 @@ void Game::scaleBackgroundFill(unsigned int newWidth, unsigned int newHeight) {
 
 void Game::update(sf::Time deltaTime) {
     if (currentState == GameState::Menu) {
-        mainMenu->updateHighScore(scoreManager->getHighScore());
         mainMenu->update(window, gameView);
     } 
+    else if (currentState == GameState::GameOver) {
+        gameOverMenu->update(window, gameView);
+    }
     else if (currentState == GameState::Playing) {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             player->moveLeft();
@@ -150,6 +166,7 @@ void Game::update(sf::Time deltaTime) {
 
         if (player->getY() > gameView.getCenter().y + GameConfig::DEATH_Y_OFFSET) {
             currentState = GameState::GameOver;
+            gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore());
         }
     }
 }
@@ -198,6 +215,12 @@ void Game::render() {
         }
         player->draw(window);
         scoreManager->draw(window, gameView);
+    }
+    else if (currentState == GameState::GameOver) {
+        for (const auto& platform : platforms) {
+            platform->draw(window);
+        }
+        gameOverMenu->draw(window);
     }
     
     window.display();

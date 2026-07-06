@@ -12,6 +12,7 @@
 class Player;
 class MainMenu;
 class ScoreManager;
+class GameOverMenu;
 
 enum class GameState {
     Menu,
@@ -42,6 +43,7 @@ private:
     std::vector<std::unique_ptr<Platform>> platforms;
 
     std::unique_ptr<ScoreManager> scoreManager;
+    std::unique_ptr<GameOverMenu> gameOverMenu;
     std::unique_ptr<MainMenu> mainMenu;
 
     sf::Sprite backgroundSprite;
