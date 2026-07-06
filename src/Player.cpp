@@ -66,3 +66,4 @@ void Player::jump() {
 float Player::getX() const { return posX; }
 float Player::getY() const { return posY; }
 float Player::getVelocityY() const { return velocityY; }
+sf::FloatRect Player::getBounds() const { return sprite.getGlobalBounds(); }
