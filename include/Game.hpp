@@ -10,6 +10,10 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <memory>
+#include "ResourceManager.hpp"
+
+class Player;
 
 namespace GameConfig {
     constexpr unsigned int BASE_WIDTH = 400;
@@ -22,11 +26,12 @@ class Game {
 private:
     sf::RenderWindow window;
     sf::View gameView;
+    ResourceManager<sf::Texture> textureManager;
+    std::unique_ptr<Player> player;
 
     void processEvents();
     void update(sf::Time deltaTime);
     void render();
-    
     void adjustViewport(unsigned int newWidth, unsigned int newHeight);
 
 public:

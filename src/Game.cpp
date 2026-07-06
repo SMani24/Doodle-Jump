@@ -6,12 +6,21 @@
  * ================================================= */
 
 #include "Game.hpp"
+#include "Player.hpp"
 
 Game::Game() : 
     window(sf::VideoMode(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT), GameConfig::WINDOW_TITLE, sf::Style::Default),
     gameView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)) 
 {
     window.setFramerateLimit(GameConfig::FRAME_RATE); 
+
+    textureManager.loadResource("doodle_left", "assets/left_doodle.png");
+    textureManager.loadResource("doodle_right", "assets/right_doodle.png");
+
+    player = std::make_unique<Player>(
+        textureManager.getResource("doodle_left"), 
+        textureManager.getResource("doodle_right")
+    );
 }
 
 void Game::run() {
@@ -61,12 +70,22 @@ void Game::adjustViewport(unsigned int newWidth, unsigned int newHeight) {
 }
 
 void Game::update(sf::Time deltaTime) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+        player->moveLeft();
+    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+        player->moveRight();
+    } else {
+        player->stopMoving();
+    }
+
+    player->update(deltaTime);
 }
 
 void Game::render() {
     window.clear(sf::Color(240, 248, 255));
-    
     window.setView(gameView);
+    
+    player->draw(window);
     
     window.display();
 }
