@@ -10,6 +10,9 @@
 GameOverMenu::GameOverMenu(std::shared_ptr<sf::Font> textFont, std::shared_ptr<sf::Texture> restartTex, std::shared_ptr<sf::Texture> menuTex)
     : font(textFont)
 {
+    overlay.setSize(sf::Vector2f(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT));
+    overlay.setFillColor(GameOverConfig::OVERLAY_COLOR);
+
     titleText.setFont(*font);
     titleText.setString("YOU LOST");
     titleText.setCharacterSize(GameOverConfig::TITLE_SIZE);
@@ -28,7 +31,10 @@ GameOverMenu::GameOverMenu(std::shared_ptr<sf::Font> textFont, std::shared_ptr<s
     highScoreText.setStyle(sf::Text::Bold);
 
     restartButton = std::make_unique<Button>(restartTex, GameConfig::BASE_WIDTH / 2.0f, GameOverConfig::RESTART_BTN_Y);
+    restartButton->setScale(GameOverConfig::BUTTON_SCALE, GameOverConfig::BUTTON_SCALE);
+
     menuButton = std::make_unique<Button>(menuTex, GameConfig::BASE_WIDTH / 2.0f, GameOverConfig::MENU_BTN_Y);
+    menuButton->setScale(GameOverConfig::BUTTON_SCALE, GameOverConfig::BUTTON_SCALE);
 }
 
 void GameOverMenu::centerText(sf::Text& text, float yPos) {
@@ -51,6 +57,7 @@ void GameOverMenu::update(const sf::RenderWindow& window, const sf::View& view) 
 }
 
 void GameOverMenu::draw(sf::RenderWindow& window) const {
+    window.draw(overlay);
     window.draw(titleText);
     window.draw(scoreText);
     window.draw(highScoreText);

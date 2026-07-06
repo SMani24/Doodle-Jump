@@ -23,6 +23,8 @@ public:
     void update(const sf::RenderWindow& window, const sf::View& view);
     void draw(sf::RenderWindow& window) const;
     bool isClicked(const sf::RenderWindow& window, const sf::View& view, const sf::Event& event) const;
+    
+    void setScale(float scaleX, float scaleY);
 };
 
 #endif // BUTTON_HPP

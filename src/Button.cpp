@@ -34,3 +34,7 @@ bool Button::isClicked(const sf::RenderWindow& window, const sf::View& view, con
     }
     return false;
 }
+
+void Button::setScale(float scaleX, float scaleY) {
+    sprite.setScale(scaleX, scaleY);
+}
