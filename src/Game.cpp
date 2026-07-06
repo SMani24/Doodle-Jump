@@ -16,6 +16,7 @@
 Game::Game() : 
     window(sf::VideoMode(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT), GameConfig::WINDOW_TITLE, sf::Style::Default),
     gameView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)),
+    backgroundView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)),
     currentState(GameState::Menu),
     worldManager(textureManager) 
 {
@@ -87,6 +88,10 @@ void Game::processEvents() {
             window.close();
         }
         if (event.type == sf::Event::Resized) {
+            
+            backgroundView.setSize(static_cast<float>(event.size.width), static_cast<float>(event.size.height));
+            backgroundView.setCenter(event.size.width / 2.0f, event.size.height / 2.0f);
+            
             adjustViewport(event.size.width, event.size.height);
             scaleBackgroundFill(event.size.width, event.size.height);
         }
@@ -173,6 +178,7 @@ void Game::update(sf::Time deltaTime) {
         }
     }
 }
+
 void Game::checkCollisions() {
     if (player->getVelocityY() > 0.0f) {
         sf::FloatRect playerBounds = player->getBounds();
@@ -184,7 +190,7 @@ void Game::checkCollisions() {
                 sf::FloatRect springBounds = platform->getSpringBounds();
                 if (playerBounds.intersects(springBounds) && playerBottom < springBounds.top + GameConfig::COLLISION_TOLERANCE) {
                     player->superJump();
-                    return;
+                    return; 
                 }
             }
 
@@ -199,16 +205,17 @@ void Game::checkCollisions() {
                     }
                 } else {
                     player->jump();
-                    return;
+                    return; 
                 }
             }
         }
     }
 }
+
 void Game::render() {
     window.clear();
     
-    window.setView(window.getDefaultView());
+    window.setView(backgroundView);
     window.draw(backgroundFillSprite);
     
     window.setView(gameView);

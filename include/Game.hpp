@@ -1,3 +1,10 @@
+/* ========== Naming Convention Guideline ==========
+ * Class names: PascalCase
+ * Function names : camelCase
+ * Variable names : camelCase
+ * Constant names : UPPER_SNAKE_CASE
+ * ================================================= */
+
 #ifndef GAME_HPP
 #define GAME_HPP
 
@@ -33,6 +40,7 @@ class Game {
 private:
     sf::RenderWindow window;
     sf::View gameView;
+    sf::View backgroundView;
     GameState currentState;
     
     ResourceManager<sf::Texture> textureManager;
@@ -43,8 +51,8 @@ private:
     std::vector<std::unique_ptr<Platform>> platforms;
 
     std::unique_ptr<ScoreManager> scoreManager;
-    std::unique_ptr<GameOverMenu> gameOverMenu;
     std::unique_ptr<MainMenu> mainMenu;
+    std::unique_ptr<GameOverMenu> gameOverMenu;
 
     sf::Sprite backgroundSprite;
     sf::Sprite backgroundFillSprite;
