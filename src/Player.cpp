@@ -13,6 +13,7 @@ Player::Player(std::shared_ptr<sf::Texture> texLeft, std::shared_ptr<sf::Texture
     sprite.setTexture(*textureRight);
     
     sprite.setOrigin(sprite.getLocalBounds().width / 2.0f, sprite.getLocalBounds().height / 2.0f);
+    sprite.setScale(PlayerConfig::SPRITE_SCALE, PlayerConfig::SPRITE_SCALE);
     sprite.setPosition(posX, posY);
 }
 
@@ -30,7 +31,7 @@ void Player::update(sf::Time deltaTime) {
 }
 
 void Player::wrapAroundScreen() {
-    float halfWidth = sprite.getLocalBounds().width / 2.0f;
+    float halfWidth = sprite.getGlobalBounds().width / 2.0f;
 
     if (posX > GameConfig::BASE_WIDTH + halfWidth) {
         posX = -halfWidth;

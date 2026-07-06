@@ -10,12 +10,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
-#include "Game.hpp" 
+#include "Game.hpp"
 
 namespace PlayerConfig {
     constexpr float GRAVITY = 1200.0f;
     constexpr float MOVEMENT_SPEED = 300.0f;
     constexpr float JUMP_VELOCITY = -800.0f;
+    constexpr float SPRITE_SCALE = 0.7f;
 }
 
 class Player {
