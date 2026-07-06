@@ -59,8 +59,11 @@ void Player::stopMoving() {
     velocityX = 0.0f;
 }
 
-void Player::jump() {
-    velocityY = PlayerConfig::JUMP_VELOCITY;
+void Player::jump(float velocity) {
+    velocityY = velocity;
+}
+void Player::superJump() {
+    velocityY = PlayerConfig::SUPER_JUMP_VELOCITY;
 }
 
 float Player::getX() const { return posX; }

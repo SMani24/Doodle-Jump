@@ -30,6 +30,7 @@ Game::Game() :
     textureManager.loadResource("btn_restart", "assets/restart_button.png");
     textureManager.loadResource("btn_menu", "assets/menu_button.png");
     textureManager.loadResource("bg", "assets/background.png");
+    textureManager.loadResource("spring", "assets/spring.png");
 
     fontManager.loadResource("main_font", "fonts/ariblk.ttf");
 
@@ -172,33 +173,38 @@ void Game::update(sf::Time deltaTime) {
         }
     }
 }
-
 void Game::checkCollisions() {
     if (player->getVelocityY() > 0.0f) {
         sf::FloatRect playerBounds = player->getBounds();
+        float playerBottom = playerBounds.top + playerBounds.height;
         
         for (const auto& platform : platforms) {
+            
+            if (platform->hasSpring()) {
+                sf::FloatRect springBounds = platform->getSpringBounds();
+                if (playerBounds.intersects(springBounds) && playerBottom < springBounds.top + GameConfig::COLLISION_TOLERANCE) {
+                    player->superJump();
+                    return;
+                }
+            }
+
             sf::FloatRect platBounds = platform->getBounds();
             
-            if (playerBounds.intersects(platBounds)) {
-                float playerBottom = playerBounds.top + playerBounds.height;
+            if (playerBounds.intersects(platBounds) && playerBottom < platBounds.top + GameConfig::COLLISION_TOLERANCE) {
+                BreakablePlatform* breakable = dynamic_cast<BreakablePlatform*>(platform.get());
                 
-                if (playerBottom < platBounds.top + GameConfig::COLLISION_TOLERANCE) {
-                    BreakablePlatform* breakable = dynamic_cast<BreakablePlatform*>(platform.get());
-                    if (breakable != nullptr) {
-                        if (!breakable->getIsBroken()) {
-                            breakable->breakPlatform();
-                        }
-                    } else {
-                        player->jump();
-                        break;
+                if (breakable != nullptr) {
+                    if (!breakable->getIsBroken()) {
+                        breakable->breakPlatform();
                     }
+                } else {
+                    player->jump();
+                    return;
                 }
             }
         }
     }
 }
-
 void Game::render() {
     window.clear();
     

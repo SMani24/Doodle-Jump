@@ -9,12 +9,14 @@
 #define PLATFORM_HPP
 
 #include <SFML/Graphics.hpp>
+#include "Spring.hpp"
 #include <memory>
 
 class Platform {
 protected:
     sf::Sprite sprite;
     std::shared_ptr<sf::Texture> texture;
+    std::unique_ptr<Spring> spring;
     float posX;
     float posY;
 
@@ -29,7 +31,11 @@ public:
     float getX() const;
     float getY() const;
 
-    void setY(float newY);
+    virtual void setY(float newY);
+
+    void attachSpring(std::shared_ptr<sf::Texture> springTex);
+    bool hasSpring() const;
+    sf::FloatRect getSpringBounds() const;
 };
 
 #endif // PLATFORM_HPP

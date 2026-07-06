@@ -8,7 +8,7 @@
 #include "Platform.hpp"
 
 Platform::Platform(std::shared_ptr<sf::Texture> tex, float x, float y)
-    : texture(tex), posX(x), posY(y) 
+    : texture(tex), spring(nullptr), posX(x), posY(y) 
 {
     sprite.setTexture(*texture);
     sprite.setPosition(posX, posY);
@@ -16,6 +16,9 @@ Platform::Platform(std::shared_ptr<sf::Texture> tex, float x, float y)
 
 void Platform::draw(sf::RenderWindow& window) const {
     window.draw(sprite);
+    if (spring) {
+        spring->draw(window);
+    }
 }
 
 sf::FloatRect Platform::getBounds() const {
@@ -28,4 +31,21 @@ float Platform::getY() const { return posY; }
 void Platform::setY(float newY) {
     posY = newY;
     sprite.setPosition(posX, posY);
+    if (spring) {
+        spring->updatePosition(posX, posY, sprite.getGlobalBounds().width);
+    }
+}
+
+void Platform::attachSpring(std::shared_ptr<sf::Texture> springTex) {
+    spring = std::make_unique<Spring>(springTex);
+    spring->updatePosition(posX, posY, sprite.getGlobalBounds().width);
+}
+
+bool Platform::hasSpring() const {
+    return spring != nullptr;
+}
+
+sf::FloatRect Platform::getSpringBounds() const {
+    if (spring) return spring->getBounds();
+    return sf::FloatRect();
 }

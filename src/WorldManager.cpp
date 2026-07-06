@@ -48,20 +48,28 @@ void WorldManager::spawnPlatform(std::vector<std::unique_ptr<Platform>>& platfor
         }
     }
 
+    std::unique_ptr<Platform> newPlatform;
+
     if (type <= 6) { 
-        platforms.push_back(std::make_unique<NormalPlatform>(
-            textureManager.getResource("platform_normal"), xPos, yPos));
+        newPlatform = std::make_unique<NormalPlatform>(textureManager.getResource("platform_normal"), xPos, yPos);
         lastSafePlatformY = yPos;
     } 
     else if (type <= 8) { 
-        platforms.push_back(std::make_unique<MovingPlatform>(
-            textureManager.getResource("platform_moving"), xPos, yPos));
+        newPlatform = std::make_unique<MovingPlatform>(textureManager.getResource("platform_moving"), xPos, yPos);
         lastSafePlatformY = yPos;
     } 
     else { 
-        platforms.push_back(std::make_unique<BreakablePlatform>(
-            textureManager.getResource("platform_broken"), xPos, yPos));
+        newPlatform = std::make_unique<BreakablePlatform>(textureManager.getResource("platform_broken"), xPos, yPos);
     }
+
+    if (type <= 8) {
+        int springChance = getRandomType();
+        if (springChance > 8) {
+            newPlatform->attachSpring(textureManager.getResource("spring"));
+        }
+    }
+
+    platforms.push_back(std::move(newPlatform));
 }
 
 void WorldManager::generateInitialWorld(std::vector<std::unique_ptr<Platform>>& platforms) {

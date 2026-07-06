@@ -26,7 +26,7 @@ namespace GameConfig {
     const std::string WINDOW_TITLE = "Doodle Jump";
     constexpr unsigned int FRAME_RATE = 60;
     constexpr float COLLISION_TOLERANCE = 15.0f;
-    constexpr float DEATH_Y_OFFSET = 600.0f;
+    constexpr float DEATH_Y_OFFSET = 300.0f;
 }
 
 class Game {
