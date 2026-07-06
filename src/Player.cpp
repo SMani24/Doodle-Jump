@@ -67,3 +67,5 @@ float Player::getX() const { return posX; }
 float Player::getY() const { return posY; }
 float Player::getVelocityY() const { return velocityY; }
 sf::FloatRect Player::getBounds() const { return sprite.getGlobalBounds(); }
+
+void Player::setY(float newY) { posY = newY; }

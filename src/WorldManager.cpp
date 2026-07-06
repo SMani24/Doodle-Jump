@@ -1,0 +1,77 @@
+/* ========== Naming Convention Guideline ==========
+ * Class names: PascalCase
+ * Function names : camelCase
+ * Variable names : camelCase
+ * Constant names : UPPER_SNAKE_CASE
+ * ================================================= */
+
+#include "WorldManager.hpp"
+#include "NormalPlatform.hpp"
+#include "Game.hpp" 
+#include <algorithm>
+#include <random>
+
+WorldManager::WorldManager(ResourceManager<sf::Texture>& texManager) 
+    : textureManager(texManager), highestPlatformY(GameConfig::BASE_HEIGHT) {}
+
+float WorldManager::getRandomX() const {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(WorldConfig::PLATFORM_X_MIN, WorldConfig::PLATFORM_X_MAX);
+    return dis(gen);
+}
+
+float WorldManager::getRandomGap() const {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(WorldConfig::PLATFORM_Y_MIN_GAP, WorldConfig::PLATFORM_Y_MAX_GAP);
+    return dis(gen);
+}
+
+void WorldManager::spawnPlatform(std::vector<std::unique_ptr<Platform>>& platforms, float yPos) {
+    float xPos = getRandomX();
+    platforms.push_back(std::make_unique<NormalPlatform>(
+        textureManager.getResource("platform_normal"), 
+        xPos, yPos
+    ));
+}
+
+void WorldManager::generateInitialWorld(std::vector<std::unique_ptr<Platform>>& platforms) {
+    highestPlatformY = GameConfig::BASE_HEIGHT;
+    
+    platforms.push_back(std::make_unique<NormalPlatform>(
+        textureManager.getResource("platform_normal"), 
+        160.0f, 580.0f 
+    ));
+
+    while (highestPlatformY > 0.0f) {
+        highestPlatformY -= getRandomGap();
+        spawnPlatform(platforms, highestPlatformY);
+    }
+}
+
+void WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms) {
+    if (player.getY() < WorldConfig::SCROLL_THRESHOLD) {
+        float offset = WorldConfig::SCROLL_THRESHOLD - player.getY();
+        
+        player.setY(WorldConfig::SCROLL_THRESHOLD);
+        highestPlatformY += offset;
+
+        for (auto& platform : platforms) {
+            platform->setY(platform->getY() + offset);
+        }
+    }
+
+    while (highestPlatformY > 0.0f) {
+        highestPlatformY -= getRandomGap();
+        spawnPlatform(platforms, highestPlatformY);
+    }
+
+    platforms.erase(
+        std::remove_if(platforms.begin(), platforms.end(),
+            [](const std::unique_ptr<Platform>& p) {
+                return p->getY() > WorldConfig::DESPAWN_Y;
+            }),
+        platforms.end()
+    );
+}

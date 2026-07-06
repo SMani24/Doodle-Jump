@@ -24,3 +24,8 @@ sf::FloatRect Platform::getBounds() const {
 
 float Platform::getX() const { return posX; }
 float Platform::getY() const { return posY; }
+
+void Platform::setY(float newY) {
+    posY = newY;
+    sprite.setPosition(posX, posY);
+}

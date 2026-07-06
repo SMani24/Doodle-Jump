@@ -28,6 +28,8 @@ public:
     sf::FloatRect getBounds() const;
     float getX() const;
     float getY() const;
+
+    void setY(float newY);
 };
 
 #endif // PLATFORM_HPP

@@ -51,6 +51,7 @@ public:
     float getVelocityY() const;
     sf::FloatRect getBounds() const;
     
+    void setY(float newY);
 };
 
 #endif // PLAYER_HPP
