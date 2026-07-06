@@ -7,6 +7,7 @@
 
 #include "Game.hpp"
 #include "Player.hpp"
+#include "NormalPlatform.hpp"
 
 Game::Game() : 
     window(sf::VideoMode(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT), GameConfig::WINDOW_TITLE, sf::Style::Default),
@@ -16,11 +17,17 @@ Game::Game() :
 
     textureManager.loadResource("doodle_left", "assets/left_doodle.png");
     textureManager.loadResource("doodle_right", "assets/right_doodle.png");
+    textureManager.loadResource("platform_normal", "assets/normal_platform.png");
 
     player = std::make_unique<Player>(
         textureManager.getResource("doodle_left"), 
         textureManager.getResource("doodle_right")
     );
+
+    platforms.push_back(std::make_unique<NormalPlatform>(
+        textureManager.getResource("platform_normal"), 
+        160.0f, 500.0f
+    ));
 }
 
 Game::~Game() = default;
@@ -81,11 +88,40 @@ void Game::update(sf::Time deltaTime) {
     }
 
     player->update(deltaTime);
+    
+    for (auto& platform : platforms) {
+        platform->update(deltaTime);
+    }
+
+    checkCollisions();
+}
+
+void Game::checkCollisions() {
+    if (player->getVelocityY() > 0.0f) {
+        sf::FloatRect playerBounds = player->getBounds();
+        
+        for (const auto& platform : platforms) {
+            sf::FloatRect platBounds = platform->getBounds();
+            
+            if (playerBounds.intersects(platBounds)) {
+                float playerBottom = playerBounds.top + playerBounds.height;
+                
+                if (playerBottom < platBounds.top + GameConfig::COLLISION_TOLERANCE) {
+                    player->jump();
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void Game::render() {
     window.clear(sf::Color(240, 248, 255));
     window.setView(gameView);
+    
+    for (const auto& platform : platforms) {
+        platform->draw(window);
+    }
     
     player->draw(window);
     

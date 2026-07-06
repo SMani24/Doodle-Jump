@@ -16,7 +16,7 @@ namespace PlayerConfig {
     constexpr float GRAVITY = 1200.0f;
     constexpr float MOVEMENT_SPEED = 300.0f;
     constexpr float JUMP_VELOCITY = -800.0f;
-    constexpr float SPRITE_SCALE = 0.7f;
+    constexpr float SPRITE_SCALE = 0.5f;
 }
 
 class Player {
@@ -50,6 +50,7 @@ public:
     float getY() const;
     float getVelocityY() const;
     sf::FloatRect getBounds() const;
+    
 };
 
 #endif // PLAYER_HPP
