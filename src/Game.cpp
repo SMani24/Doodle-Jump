@@ -155,14 +155,16 @@ void Game::update(sf::Time deltaTime) {
         }
 
         player->update(deltaTime);
-        scoreManager->update(player->getY());
         
         for (auto& platform : platforms) {
             platform->update(deltaTime);
         }
 
         checkCollisions();
-        worldManager.update(*player, platforms);
+        
+        float scrollOffset = worldManager.update(*player, platforms);
+        scoreManager->addOffset(scrollOffset);
+        scoreManager->update(player->getY());
 
         if (player->getY() > gameView.getCenter().y + GameConfig::DEATH_Y_OFFSET) {
             currentState = GameState::GameOver;

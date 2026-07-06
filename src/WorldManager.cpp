@@ -79,16 +79,18 @@ void WorldManager::generateInitialWorld(std::vector<std::unique_ptr<Platform>>& 
     }
 }
 
-void WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms) {
+float WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms) {
+    float appliedOffset = 0.0f;
+    
     if (player.getY() < WorldConfig::SCROLL_THRESHOLD) {
-        float offset = WorldConfig::SCROLL_THRESHOLD - player.getY();
+        appliedOffset = WorldConfig::SCROLL_THRESHOLD - player.getY();
         
         player.setY(WorldConfig::SCROLL_THRESHOLD);
-        highestPlatformY += offset;
-        lastSafePlatformY += offset; 
+        highestPlatformY += appliedOffset;
+        lastSafePlatformY += appliedOffset; 
 
         for (auto& platform : platforms) {
-            platform->setY(platform->getY() + offset);
+            platform->setY(platform->getY() + appliedOffset);
         }
     }
 
@@ -104,4 +106,6 @@ void WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>>
             }),
         platforms.end()
     );
+    
+    return appliedOffset;
 }

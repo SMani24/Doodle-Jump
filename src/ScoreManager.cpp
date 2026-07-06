@@ -10,7 +10,7 @@
 #include <algorithm>
 
 ScoreManager::ScoreManager(std::shared_ptr<sf::Font> textFont) 
-    : currentScore(0), highScore(0), highestReachedY(ScoreConfig::STARTING_Y), font(textFont) 
+    : currentScore(0), highScore(0), highestReachedY(ScoreConfig::STARTING_Y), totalScrollOffset(0.0f), font(textFont) 
 {
     loadHighScore();
 
@@ -35,9 +35,15 @@ void ScoreManager::saveHighScore() {
     }
 }
 
-void ScoreManager::update(float playerY) {
-    if (playerY < highestReachedY) {
-        highestReachedY = playerY;
+void ScoreManager::addOffset(float offset) {
+    totalScrollOffset += offset;
+}
+
+void ScoreManager::update(float playerScreenY) {
+    float realWorldY = playerScreenY - totalScrollOffset;
+
+    if (realWorldY < highestReachedY) {
+        highestReachedY = realWorldY;
         
         float distanceTraveled = ScoreConfig::STARTING_Y - highestReachedY;
         currentScore = static_cast<int>(distanceTraveled) * ScoreConfig::SCORE_MULTIPLIER;
@@ -54,6 +60,7 @@ void ScoreManager::update(float playerY) {
 void ScoreManager::resetCurrentScore() {
     currentScore = 0;
     highestReachedY = ScoreConfig::STARTING_Y;
+    totalScrollOffset = 0.0f;
     scoreText.setString("Score: 0");
 }
 

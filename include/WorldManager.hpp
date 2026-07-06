@@ -45,7 +45,7 @@ public:
     ~WorldManager() = default;
 
     void generateInitialWorld(std::vector<std::unique_ptr<Platform>>& platforms);
-    void update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms);
+    float update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms);
 };
 
 #endif // WORLD_MANAGER_HPP

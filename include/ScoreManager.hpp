@@ -14,7 +14,7 @@
 
 namespace ScoreConfig {
     const std::string SAVE_FILE = "highscore.txt";
-    constexpr int SCORE_MULTIPLIER = 10;
+    constexpr float SCORE_MULTIPLIER = 0.1;
     constexpr float STARTING_Y = 400.0f; 
 }
 
@@ -23,6 +23,7 @@ private:
     int currentScore;
     int highScore;
     float highestReachedY;
+    float totalScrollOffset;
     
     sf::Text scoreText;
     std::shared_ptr<sf::Font> font;
@@ -34,7 +35,8 @@ public:
     ScoreManager(std::shared_ptr<sf::Font> textFont);
     ~ScoreManager() = default;
 
-    void update(float playerY);
+    void addOffset(float offset);
+    void update(float playerScreenY);
     void resetCurrentScore();
     void draw(sf::RenderWindow& window, const sf::View& view) const;
     
