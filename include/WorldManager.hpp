@@ -26,16 +26,19 @@ namespace WorldConfig {
     
     constexpr float START_X = 160.0f;
     constexpr float START_Y = 580.0f;
+    constexpr float MAX_SAFE_JUMP_DISTANCE = 250.0f;
 }
 
 class WorldManager {
 private:
     ResourceManager<sf::Texture>& textureManager;
     float highestPlatformY;
+    float lastSafePlatformY;
 
     void spawnPlatform(std::vector<std::unique_ptr<Platform>>& platforms, float yPos);
     float getRandomX() const;
     float getRandomGap() const;
+    int getRandomType() const;
 
 public:
     WorldManager(ResourceManager<sf::Texture>& texManager);

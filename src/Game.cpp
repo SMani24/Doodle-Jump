@@ -8,6 +8,7 @@
 #include "Game.hpp"
 #include "Player.hpp"
 #include "NormalPlatform.hpp"
+#include "BreakablePlatform.hpp"
 
 Game::Game() : 
     window(sf::VideoMode(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT), GameConfig::WINDOW_TITLE, sf::Style::Default),
@@ -19,6 +20,8 @@ Game::Game() :
     textureManager.loadResource("doodle_left", "assets/left_doodle.png");
     textureManager.loadResource("doodle_right", "assets/right_doodle.png");
     textureManager.loadResource("platform_normal", "assets/normal_platform.png");
+    textureManager.loadResource("platform_moving", "assets/moving_platform.png");
+    textureManager.loadResource("platform_broken", "assets/broken_platform.png");
 
     player = std::make_unique<Player>(
         textureManager.getResource("doodle_left"), 
@@ -107,8 +110,17 @@ void Game::checkCollisions() {
                 float playerBottom = playerBounds.top + playerBounds.height;
                 
                 if (playerBottom < platBounds.top + GameConfig::COLLISION_TOLERANCE) {
-                    player->jump();
-                    break;
+                    
+                    BreakablePlatform* breakable = dynamic_cast<BreakablePlatform*>(platform.get());
+                    
+                    if (breakable != nullptr) {
+                        if (!breakable->getIsBroken()) {
+                            breakable->breakPlatform();
+                        }
+                    } else {
+                        player->jump();
+                        break;
+                    }
                 }
             }
         }

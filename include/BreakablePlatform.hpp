@@ -11,19 +11,32 @@
 #include "Platform.hpp"
 
 namespace BreakablePlatformConfig {
-    constexpr float FALL_SPEED = 500.0f;
+    constexpr float FALL_SPEED_Y = 500.0f;
+    constexpr float FALL_SPEED_X = 40.0f;
+    constexpr float ROTATION_SPEED = 150.0f; 
 }
 
 class BreakablePlatform : public Platform {
 private:
     bool isBroken;
-    std::shared_ptr<sf::Texture> brokenTexture;
+    
+    sf::Sprite spriteLeft;
+    sf::Sprite spriteRight;
+    
+    float leftPosX;
+    float rightPosX;
+    float leftPosY;
+    float rightPosY;
+    float leftRotation;
+    float rightRotation;
 
 public:
-    BreakablePlatform(std::shared_ptr<sf::Texture> tex, std::shared_ptr<sf::Texture> brokenTex, float x, float y);
+    BreakablePlatform(std::shared_ptr<sf::Texture> brokenTex, float x, float y);
     ~BreakablePlatform() override = default;
 
     void update(sf::Time deltaTime) override;
+    void draw(sf::RenderWindow& window) const override;
+    
     void breakPlatform();
     bool getIsBroken() const;
 };

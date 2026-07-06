@@ -7,13 +7,15 @@
 
 #include "WorldManager.hpp"
 #include "NormalPlatform.hpp"
+#include "MovingPlatform.hpp"
+#include "BreakablePlatform.hpp"
 #include "Game.hpp" 
 #include "Player.hpp"
 #include <algorithm>
 #include <random>
 
 WorldManager::WorldManager(ResourceManager<sf::Texture>& texManager) 
-    : textureManager(texManager), highestPlatformY(GameConfig::BASE_HEIGHT) {}
+    : textureManager(texManager), highestPlatformY(GameConfig::BASE_HEIGHT), lastSafePlatformY(0.0f) {}
 
 float WorldManager::getRandomX() const {
     static std::random_device rd;
@@ -29,16 +31,42 @@ float WorldManager::getRandomGap() const {
     return dis(gen);
 }
 
+int WorldManager::getRandomType() const {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(1, 10);
+    return dis(gen);
+}
+
 void WorldManager::spawnPlatform(std::vector<std::unique_ptr<Platform>>& platforms, float yPos) {
     float xPos = getRandomX();
-    platforms.push_back(std::make_unique<NormalPlatform>(
-        textureManager.getResource("platform_normal"), 
-        xPos, yPos
-    ));
+    int type = getRandomType();
+
+    if (type > 8) { 
+        if ((lastSafePlatformY - yPos) + WorldConfig::PLATFORM_Y_MAX_GAP > WorldConfig::MAX_SAFE_JUMP_DISTANCE) {
+            type = 1; 
+        }
+    }
+
+    if (type <= 6) { 
+        platforms.push_back(std::make_unique<NormalPlatform>(
+            textureManager.getResource("platform_normal"), xPos, yPos));
+        lastSafePlatformY = yPos;
+    } 
+    else if (type <= 8) { 
+        platforms.push_back(std::make_unique<MovingPlatform>(
+            textureManager.getResource("platform_moving"), xPos, yPos));
+        lastSafePlatformY = yPos;
+    } 
+    else { 
+        platforms.push_back(std::make_unique<BreakablePlatform>(
+            textureManager.getResource("platform_broken"), xPos, yPos));
+    }
 }
 
 void WorldManager::generateInitialWorld(std::vector<std::unique_ptr<Platform>>& platforms) {
     highestPlatformY = GameConfig::BASE_HEIGHT;
+    lastSafePlatformY = WorldConfig::START_Y;
     
     platforms.push_back(std::make_unique<NormalPlatform>(
         textureManager.getResource("platform_normal"), 
@@ -57,6 +85,7 @@ void WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>>
         
         player.setY(WorldConfig::SCROLL_THRESHOLD);
         highestPlatformY += offset;
+        lastSafePlatformY += offset; 
 
         for (auto& platform : platforms) {
             platform->setY(platform->getY() + offset);
