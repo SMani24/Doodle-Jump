@@ -8,6 +8,7 @@
 #include "WorldManager.hpp"
 #include "NormalPlatform.hpp"
 #include "Game.hpp" 
+#include "Player.hpp"
 #include <algorithm>
 #include <random>
 
@@ -41,7 +42,7 @@ void WorldManager::generateInitialWorld(std::vector<std::unique_ptr<Platform>>& 
     
     platforms.push_back(std::make_unique<NormalPlatform>(
         textureManager.getResource("platform_normal"), 
-        160.0f, 580.0f 
+        WorldConfig::START_X, WorldConfig::START_Y 
     ));
 
     while (highestPlatformY > 0.0f) {

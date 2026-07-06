@@ -8,11 +8,12 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
+#include "ResourceManager.hpp"
 #include <SFML/Graphics.hpp>
+#include "WorldManager.hpp"
 #include <string>
 #include <memory>
 #include <vector>
-#include "ResourceManager.hpp"
 
 class Player;
 class Platform;
@@ -32,6 +33,7 @@ private:
     ResourceManager<sf::Texture> textureManager;
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Platform>> platforms;
+    WorldManager worldManager;
 
     void processEvents();
     void update(sf::Time deltaTime);

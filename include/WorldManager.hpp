@@ -13,7 +13,8 @@
 #include <SFML/Graphics.hpp>
 #include "Platform.hpp"
 #include "ResourceManager.hpp"
-#include "Player.hpp"
+
+class Player;
 
 namespace WorldConfig {
     constexpr float SCROLL_THRESHOLD = 300.0f; 
@@ -22,6 +23,9 @@ namespace WorldConfig {
     constexpr float PLATFORM_X_MAX = 330.0f;   
     constexpr float PLATFORM_Y_MIN_GAP = 50.0f;
     constexpr float PLATFORM_Y_MAX_GAP = 140.0f;
+    
+    constexpr float START_X = 160.0f;
+    constexpr float START_Y = 580.0f;
 }
 
 class WorldManager {

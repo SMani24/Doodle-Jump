@@ -11,7 +11,8 @@
 
 Game::Game() : 
     window(sf::VideoMode(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT), GameConfig::WINDOW_TITLE, sf::Style::Default),
-    gameView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)) 
+    gameView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)),
+    worldManager(textureManager)
 {
     window.setFramerateLimit(GameConfig::FRAME_RATE); 
 
@@ -24,10 +25,7 @@ Game::Game() :
         textureManager.getResource("doodle_right")
     );
 
-    platforms.push_back(std::make_unique<NormalPlatform>(
-        textureManager.getResource("platform_normal"), 
-        160.0f, 500.0f
-    ));
+    worldManager.generateInitialWorld(platforms);
 }
 
 Game::~Game() = default;
@@ -94,6 +92,8 @@ void Game::update(sf::Time deltaTime) {
     }
 
     checkCollisions();
+    
+    worldManager.update(*player, platforms);
 }
 
 void Game::checkCollisions() {
