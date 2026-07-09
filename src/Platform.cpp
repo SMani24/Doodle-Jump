@@ -32,13 +32,14 @@ void Platform::setY(float newY) {
     posY = newY;
     sprite.setPosition(posX, posY);
     if (spring) {
-        spring->updatePosition(posX, posY, sprite.getGlobalBounds().width);
+        spring->updatePosition(posX, posY);
     }
 }
 
 void Platform::attachSpring(std::shared_ptr<sf::Texture> springTex) {
-    spring = std::make_unique<Spring>(springTex);
-    spring->updatePosition(posX, posY, sprite.getGlobalBounds().width);
+    float platWidth = sprite.getLocalBounds().width;
+    spring = std::make_unique<Spring>(springTex, platWidth);
+    spring->updatePosition(posX, posY);
 }
 
 bool Platform::hasSpring() const {
@@ -48,4 +49,10 @@ bool Platform::hasSpring() const {
 sf::FloatRect Platform::getSpringBounds() const {
     if (spring) return spring->getBounds();
     return sf::FloatRect();
+}
+
+void Platform::compressSpring() {
+    if (spring) {
+        spring->compress();
+    }
 }

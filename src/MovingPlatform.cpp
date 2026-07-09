@@ -29,6 +29,6 @@ void MovingPlatform::update(sf::Time deltaTime) {
     sprite.setPosition(posX, posY);
 
     if (spring) {
-        spring->updatePosition(posX, posY, sprite.getGlobalBounds().width);
+        spring->updatePosition(posX, posY);
     }
 }

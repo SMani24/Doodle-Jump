@@ -36,6 +36,8 @@ public:
     void attachSpring(std::shared_ptr<sf::Texture> springTex);
     bool hasSpring() const;
     sf::FloatRect getSpringBounds() const;
+
+    void compressSpring();
 };
 
 #endif // PLATFORM_HPP

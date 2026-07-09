@@ -189,7 +189,10 @@ void Game::checkCollisions() {
             if (platform->hasSpring()) {
                 sf::FloatRect springBounds = platform->getSpringBounds();
                 if (playerBounds.intersects(springBounds) && playerBottom < springBounds.top + GameConfig::COLLISION_TOLERANCE) {
+                    
+                    platform->compressSpring();
                     player->superJump();
+                    
                     return; 
                 }
             }
