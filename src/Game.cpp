@@ -12,8 +12,8 @@
 #include "ScoreManager.hpp"
 #include "GameOverMenu.hpp"
 #include "PauseMenu.hpp"
-#include "SettingsManager.hpp"
-#include "SettingsMenu.hpp"
+#include "SettingsManager.hpp" 
+#include "SettingsMenu.hpp"    
 #include <algorithm>
 
 Game::Game() : 
@@ -46,18 +46,27 @@ Game::Game() :
 
     fontManager.loadResource("main_font", "fonts/ariblk.ttf");
 
+    audioManager.loadResource("sfx_jump", "sounds/Jumping_Sound.wav");
+    audioManager.loadResource("sfx_lose", "sounds/Loosing_Sound.wav");
+    audioManager.loadResource("sfx_shoot", "sounds/Shooting_Sound.wav");
+
     backgroundSprite.setTexture(*textureManager.getResource("bg"));
     backgroundFillSprite.setTexture(*textureManager.getResource("bg"));
     backgroundFillSprite.setColor(sf::Color(100, 100, 100)); 
     scaleBackgroundFill(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT);
 
     settingsManager = std::make_unique<SettingsManager>();
+
+    soundManager = std::make_unique<SoundManager>();
+    soundManager->setVolume(settingsManager->getVolume());
+    soundManager->playMusic("sounds/MainMenu_Song.flac");
+
     scoreManager = std::make_unique<ScoreManager>(fontManager.getResource("main_font"));
     
     mainMenu = std::make_unique<MainMenu>(
         fontManager.getResource("main_font"), 
         textureManager.getResource("btn_start"),
-        textureManager.getResource("btn_settings")
+        textureManager.getResource("btn_settings") 
     );
     mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
 
@@ -123,10 +132,11 @@ void Game::processEvents() {
         if (currentState == GameState::Menu) {
             if (mainMenu->isStartClicked(window, gameView, event)) {
                 currentState = GameState::Playing;
+                soundManager->pauseMusic();
                 resetGame();
             }
             else if (mainMenu->isSettingsClicked(window, gameView, event)) {
-                currentState = GameState::Settings;
+                currentState = GameState::Settings; 
             }
         } 
         else if (currentState == GameState::Settings) {
@@ -152,6 +162,7 @@ void Game::processEvents() {
             }
             else if (pauseMenu->isMenuClicked(window, gameView, event)) {
                 currentState = GameState::Menu;
+                soundManager->resumeMusic();
                 resetGame();
                 mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
             }
@@ -163,6 +174,7 @@ void Game::processEvents() {
             }
             else if (gameOverMenu->isMenuClicked(window, gameView, event)) {
                 currentState = GameState::Menu;
+                soundManager->resumeMusic();
                 resetGame();
                 mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
             }
@@ -204,6 +216,7 @@ void Game::update(sf::Time deltaTime) {
     } 
     else if (currentState == GameState::Settings) {
         settingsMenu->update(window, gameView);
+        soundManager->setVolume(settingsManager->getVolume());
     }
     else if (currentState == GameState::Paused) {
         pauseMenu->update(window, gameView);
@@ -235,6 +248,7 @@ void Game::update(sf::Time deltaTime) {
 
         if (player->getY() > gameView.getCenter().y + GameConfig::DEATH_Y_OFFSET) {
             currentState = GameState::GameOver;
+            soundManager->playSound(*audioManager.getResource("sfx_lose"));
             gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore(settingsManager->getDifficulty()));
         }
     }
@@ -251,6 +265,7 @@ void Game::checkCollisions() {
                 sf::FloatRect springBounds = platform->getSpringBounds();
                 if (playerBounds.intersects(springBounds) && playerBottom < springBounds.top + GameConfig::COLLISION_TOLERANCE) {
                     platform->compressSpring();
+                    soundManager->playSound(*audioManager.getResource("sfx_jump"));
                     player->superJump();
                     return; 
                 }
@@ -266,6 +281,7 @@ void Game::checkCollisions() {
                         breakable->breakPlatform();
                     }
                 } else {
+                    soundManager->playSound(*audioManager.getResource("sfx_jump"));
                     player->jump();
                     return; 
                 }

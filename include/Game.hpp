@@ -9,24 +9,26 @@
 #define GAME_HPP
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <string>
 #include <memory>
 #include <vector>
 #include "ResourceManager.hpp"
 #include "WorldManager.hpp"
 #include "Button.hpp"
+#include "SoundManager.hpp"
 
 class Player;
 class MainMenu;
 class ScoreManager;
 class GameOverMenu;
 class PauseMenu;
-class SettingsManager;
-class SettingsMenu;
+class SettingsManager; 
+class SettingsMenu;    
 
 enum class GameState {
     Menu,
-    Settings,
+    Settings, 
     Playing,
     Paused,
     GameOver
@@ -50,17 +52,19 @@ private:
     
     ResourceManager<sf::Texture> textureManager;
     ResourceManager<sf::Font> fontManager;
+    ResourceManager<sf::SoundBuffer> audioManager;
     WorldManager worldManager;
     
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Platform>> platforms;
 
-    std::unique_ptr<SettingsManager> settingsManager;
+    std::unique_ptr<SettingsManager> settingsManager; 
+    std::unique_ptr<SoundManager> soundManager;
     std::unique_ptr<ScoreManager> scoreManager;
     std::unique_ptr<MainMenu> mainMenu;
     std::unique_ptr<GameOverMenu> gameOverMenu;
     std::unique_ptr<PauseMenu> pauseMenu;
-    std::unique_ptr<SettingsMenu> settingsMenu;
+    std::unique_ptr<SettingsMenu> settingsMenu; 
 
     sf::Sprite backgroundSprite;
     sf::Sprite backgroundFillSprite;
