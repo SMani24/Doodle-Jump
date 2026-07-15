@@ -6,12 +6,17 @@
  * ================================================= */
 
 #include "ScoreManager.hpp"
+#include "SettingsManager.hpp"
 #include <fstream>
 #include <algorithm>
 
 ScoreManager::ScoreManager(std::shared_ptr<sf::Font> textFont) 
-    : currentScore(0), highScore(0), highestReachedY(ScoreConfig::STARTING_Y), totalScrollOffset(0.0f), font(textFont) 
+    : currentScore(0), highestReachedY(ScoreConfig::STARTING_Y), totalScrollOffset(0.0f), font(textFont) 
 {
+    highScores[0] = 0;
+    highScores[1] = 0;
+    highScores[2] = 0;
+
     loadHighScore();
 
     scoreText.setFont(*font);
@@ -24,8 +29,6 @@ void ScoreManager::loadHighScore() {
     if (file.is_open()) {
         file >> highScores[0] >> highScores[1] >> highScores[2];
         file.close();
-    } else {
-        highScores[0] = 0; highScores[1] = 0; highScores[2] = 0;
     }
 }
 
@@ -56,6 +59,7 @@ void ScoreManager::update(float playerScreenY, Difficulty currentDifficulty) {
             saveHighScore();
         }
     }
+    
     scoreText.setString("Score: " + std::to_string(currentScore));
 }
 
@@ -77,4 +81,7 @@ void ScoreManager::draw(sf::RenderWindow& window, const sf::View& view) const {
 int ScoreManager::getHighScore(Difficulty currentDifficulty) const { 
     return highScores[static_cast<int>(currentDifficulty)]; 
 }
-int ScoreManager::getCurrentScore() const { return currentScore; }
+
+int ScoreManager::getCurrentScore() const { 
+    return currentScore; 
+}
