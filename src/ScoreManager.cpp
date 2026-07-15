@@ -22,15 +22,17 @@ ScoreManager::ScoreManager(std::shared_ptr<sf::Font> textFont)
 void ScoreManager::loadHighScore() {
     std::ifstream file(ScoreConfig::SAVE_FILE);
     if (file.is_open()) {
-        file >> highScore;
+        file >> highScores[0] >> highScores[1] >> highScores[2];
         file.close();
+    } else {
+        highScores[0] = 0; highScores[1] = 0; highScores[2] = 0;
     }
 }
 
 void ScoreManager::saveHighScore() {
     std::ofstream file(ScoreConfig::SAVE_FILE);
     if (file.is_open()) {
-        file << highScore;
+        file << highScores[0] << " " << highScores[1] << " " << highScores[2];
         file.close();
     }
 }
@@ -39,8 +41,9 @@ void ScoreManager::addOffset(float offset) {
     totalScrollOffset += offset;
 }
 
-void ScoreManager::update(float playerScreenY) {
+void ScoreManager::update(float playerScreenY, Difficulty currentDifficulty) {
     float realWorldY = playerScreenY - totalScrollOffset;
+    int diffIndex = static_cast<int>(currentDifficulty);
 
     if (realWorldY < highestReachedY) {
         highestReachedY = realWorldY;
@@ -48,12 +51,11 @@ void ScoreManager::update(float playerScreenY) {
         float distanceTraveled = ScoreConfig::STARTING_Y - highestReachedY;
         currentScore = static_cast<int>(distanceTraveled) * ScoreConfig::SCORE_MULTIPLIER;
         
-        if (currentScore > highScore) {
-            highScore = currentScore;
+        if (currentScore > highScores[diffIndex]) {
+            highScores[diffIndex] = currentScore;
             saveHighScore();
         }
     }
-    
     scoreText.setString("Score: " + std::to_string(currentScore));
 }
 
@@ -72,5 +74,7 @@ void ScoreManager::draw(sf::RenderWindow& window, const sf::View& view) const {
     window.draw(renderText);
 }
 
-int ScoreManager::getHighScore() const { return highScore; }
+int ScoreManager::getHighScore(Difficulty currentDifficulty) const { 
+    return highScores[static_cast<int>(currentDifficulty)]; 
+}
 int ScoreManager::getCurrentScore() const { return currentScore; }

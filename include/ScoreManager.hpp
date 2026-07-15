@@ -18,10 +18,13 @@ namespace ScoreConfig {
     constexpr float STARTING_Y = 400.0f; 
 }
 
+class SettingsManager;
+enum class Difficulty;
+
 class ScoreManager {
 private:
     int currentScore;
-    int highScore;
+    int highScores[3];
     float highestReachedY;
     float totalScrollOffset;
     
@@ -36,11 +39,11 @@ public:
     ~ScoreManager() = default;
 
     void addOffset(float offset);
-    void update(float playerScreenY);
+    void update(float playerScreenY, Difficulty currentDifficulty);
     void resetCurrentScore();
     void draw(sf::RenderWindow& window, const sf::View& view) const;
     
-    int getHighScore() const;
+    int getHighScore(Difficulty currentDifficulty) const;
     int getCurrentScore() const;
 };
 
