@@ -35,17 +35,17 @@ SettingsMenu::SettingsMenu(std::shared_ptr<sf::Font> textFont, SettingsManager& 
     sliderFill.setPosition((GameConfig::BASE_WIDTH - SettingsMenuConfig::SLIDER_WIDTH) / 2.0f, SettingsMenuConfig::SLIDER_Y);
     sliderFill.setFillColor(SettingsMenuConfig::FILL_COLOR);
 
-    easyButton = std::make_unique<Button>(easyTex, GameConfig::BASE_WIDTH / 2.0f, SettingsMenuConfig::EASY_Y);
-    easyButton->setSize(SettingsMenuConfig::BUTTON_WIDTH, SettingsMenuConfig::BUTTON_HEIGHT);
+    easyButton = std::make_unique<Button>(easyTex, SettingsMenuConfig::EASY_X, SettingsMenuConfig::DIFF_BTN_Y);
+    easyButton->setSize(SettingsMenuConfig::DIFF_BTN_WIDTH, SettingsMenuConfig::DIFF_BTN_HEIGHT);
 
-    mediumButton = std::make_unique<Button>(medTex, GameConfig::BASE_WIDTH / 2.0f, SettingsMenuConfig::MEDIUM_Y);
-    mediumButton->setSize(SettingsMenuConfig::BUTTON_WIDTH, SettingsMenuConfig::BUTTON_HEIGHT);
+    mediumButton = std::make_unique<Button>(medTex, SettingsMenuConfig::MEDIUM_X, SettingsMenuConfig::DIFF_BTN_Y);
+    mediumButton->setSize(SettingsMenuConfig::DIFF_BTN_WIDTH, SettingsMenuConfig::DIFF_BTN_HEIGHT);
 
-    hardButton = std::make_unique<Button>(hardTex, GameConfig::BASE_WIDTH / 2.0f, SettingsMenuConfig::HARD_Y);
-    hardButton->setSize(SettingsMenuConfig::BUTTON_WIDTH, SettingsMenuConfig::BUTTON_HEIGHT);
+    hardButton = std::make_unique<Button>(hardTex, SettingsMenuConfig::HARD_X, SettingsMenuConfig::DIFF_BTN_Y);
+    hardButton->setSize(SettingsMenuConfig::DIFF_BTN_WIDTH, SettingsMenuConfig::DIFF_BTN_HEIGHT);
 
     backButton = std::make_unique<Button>(backTex, GameConfig::BASE_WIDTH / 2.0f, SettingsMenuConfig::BACK_Y);
-    backButton->setSize(SettingsMenuConfig::BUTTON_WIDTH, SettingsMenuConfig::BUTTON_HEIGHT);
+    backButton->setSize(SettingsMenuConfig::BACK_BTN_WIDTH, SettingsMenuConfig::BACK_BTN_HEIGHT);
 
     updateSliderVisuals();
 }
@@ -76,13 +76,16 @@ void SettingsMenu::update(const sf::RenderWindow& window, const sf::View& view) 
         }
     }
 
-    backButton->update(window, view);
-
     Difficulty currentDiff = settings.getDifficulty();
     
+    easyButton->setDimmed(currentDiff != Difficulty::Easy);
+    mediumButton->setDimmed(currentDiff != Difficulty::Medium);
+    hardButton->setDimmed(currentDiff != Difficulty::Hard);
+
     easyButton->update(window, view); 
     mediumButton->update(window, view);
     hardButton->update(window, view);
+    backButton->update(window, view);
 }
 
 void SettingsMenu::processClick(const sf::RenderWindow& window, const sf::View& view, const sf::Event& event) {

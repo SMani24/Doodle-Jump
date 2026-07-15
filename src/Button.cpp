@@ -7,7 +7,7 @@
 
 #include "Button.hpp"
 
-Button::Button(std::shared_ptr<sf::Texture> tex, float x, float y) : texture(tex) {
+Button::Button(std::shared_ptr<sf::Texture> tex, float x, float y) : texture(tex), isDimmed(false) {
     sprite.setTexture(*texture);
     sprite.setOrigin(sprite.getLocalBounds().width / 2.0f, sprite.getLocalBounds().height / 2.0f);
     sprite.setPosition(x, y);
@@ -17,9 +17,9 @@ void Button::update(const sf::RenderWindow& window, const sf::View& view) {
     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), view);
     
     if (sprite.getGlobalBounds().contains(mousePos)) {
-        sprite.setColor(sf::Color(200, 200, 200)); 
+        sprite.setColor(sf::Color(200, 200, 200));
     } else {
-        sprite.setColor(sf::Color::White);
+        sprite.setColor(isDimmed ? sf::Color(100, 100, 100) : sf::Color::White);
     }
 }
 
@@ -44,4 +44,8 @@ void Button::setSize(float targetWidth, float targetHeight) {
     if (bounds.width > 0.0f && bounds.height > 0.0f) {
         sprite.setScale(targetWidth / bounds.width, targetHeight / bounds.height);
     }
+}
+
+void Button::setDimmed(bool dim) {
+    isDimmed = dim;
 }

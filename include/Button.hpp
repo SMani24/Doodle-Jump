@@ -15,6 +15,7 @@ class Button {
 private:
     sf::Sprite sprite;
     std::shared_ptr<sf::Texture> texture;
+    bool isDimmed;
 
 public:
     Button(std::shared_ptr<sf::Texture> tex, float x, float y);
@@ -26,6 +27,8 @@ public:
     
     void setScale(float scaleX, float scaleY);
     void setSize(float targetWidth, float targetHeight);
+    
+    void setDimmed(bool dim);
 };
 
 #endif // BUTTON_HPP

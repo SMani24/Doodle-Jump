@@ -23,15 +23,22 @@ namespace SettingsMenuConfig {
     constexpr float VOLUME_TEXT_Y = 160.0f;
     constexpr float SLIDER_Y = 200.0f;
     constexpr float DIFF_TEXT_Y = 280.0f;
-    constexpr float EASY_Y = 340.0f;
-    constexpr float MEDIUM_Y = 410.0f;
-    constexpr float HARD_Y = 480.0f;
-    constexpr float BACK_Y = 550.0f;
+    
+    constexpr float DIFF_BTN_Y = 360.0f;
+    constexpr float EASY_X = 75.0f;
+    constexpr float MEDIUM_X = 200.0f;
+    constexpr float HARD_X = 325.0f;
+    
+    constexpr float BACK_Y = 500.0f;
     
     constexpr float SLIDER_WIDTH = 250.0f;
     constexpr float SLIDER_HEIGHT = 15.0f;
-    constexpr float BUTTON_WIDTH = 200.0f;
-    constexpr float BUTTON_HEIGHT = 50.0f;
+    
+    constexpr float DIFF_BTN_WIDTH = 100.0f;
+    constexpr float DIFF_BTN_HEIGHT = 65.0f; 
+    
+    constexpr float BACK_BTN_WIDTH = 200.0f;
+    constexpr float BACK_BTN_HEIGHT = 50.0f;
 }
 
 class SettingsMenu {
