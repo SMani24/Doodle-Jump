@@ -25,6 +25,7 @@ public:
     bool isClicked(const sf::RenderWindow& window, const sf::View& view, const sf::Event& event) const;
     
     void setScale(float scaleX, float scaleY);
+    void setSize(float targetWidth, float targetHeight);
 };
 
 #endif // BUTTON_HPP

@@ -16,7 +16,7 @@ namespace PlayerConfig {
     constexpr float GRAVITY = 1200.0f;
     constexpr float MOVEMENT_SPEED = 300.0f;
     constexpr float JUMP_VELOCITY = -800.0f;
-    constexpr float SPRITE_SCALE = 0.5f;
+    constexpr float SPRITE_SCALE = 0.3f;
     constexpr float SUPER_JUMP_VELOCITY = -1400.0f;
 }
 

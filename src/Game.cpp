@@ -11,6 +11,7 @@
 #include "MainMenu.hpp"
 #include "ScoreManager.hpp"
 #include "GameOverMenu.hpp"
+#include "PauseMenu.hpp"
 #include <algorithm>
 
 Game::Game() : 
@@ -30,6 +31,7 @@ Game::Game() :
     textureManager.loadResource("btn_start", "assets/start_button.png");
     textureManager.loadResource("btn_restart", "assets/restart_button.png");
     textureManager.loadResource("btn_menu", "assets/menu_button.png");
+    textureManager.loadResource("btn_resume", "assets/resume_button.png");
     textureManager.loadResource("bg", "assets/background.png");
     textureManager.loadResource("spring", "assets/spring.png");
 
@@ -51,6 +53,12 @@ Game::Game() :
     gameOverMenu = std::make_unique<GameOverMenu>(
         fontManager.getResource("main_font"),
         textureManager.getResource("btn_restart"),
+        textureManager.getResource("btn_menu")
+    );
+
+    pauseMenu = std::make_unique<PauseMenu>(
+        fontManager.getResource("main_font"),
+        textureManager.getResource("btn_resume"),
         textureManager.getResource("btn_menu")
     );
 
@@ -88,7 +96,6 @@ void Game::processEvents() {
             window.close();
         }
         if (event.type == sf::Event::Resized) {
-            
             backgroundView.setSize(static_cast<float>(event.size.width), static_cast<float>(event.size.height));
             backgroundView.setCenter(event.size.width / 2.0f, event.size.height / 2.0f);
             
@@ -102,6 +109,24 @@ void Game::processEvents() {
                 resetGame();
             }
         } 
+        else if (currentState == GameState::Playing) {
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                currentState = GameState::Paused;
+            }
+        }
+        else if (currentState == GameState::Paused) {
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                currentState = GameState::Playing;
+            }
+            else if (pauseMenu->isResumeClicked(window, gameView, event)) {
+                currentState = GameState::Playing;
+            }
+            else if (pauseMenu->isMenuClicked(window, gameView, event)) {
+                currentState = GameState::Menu;
+                resetGame();
+                mainMenu->updateHighScore(scoreManager->getHighScore());
+            }
+        }
         else if (currentState == GameState::GameOver) {
             if (gameOverMenu->isRestartClicked(window, gameView, event)) {
                 currentState = GameState::Playing;
@@ -148,6 +173,9 @@ void Game::update(sf::Time deltaTime) {
     if (currentState == GameState::Menu) {
         mainMenu->update(window, gameView);
     } 
+    else if (currentState == GameState::Paused) {
+        pauseMenu->update(window, gameView);
+    }
     else if (currentState == GameState::GameOver) {
         gameOverMenu->update(window, gameView);
     }
@@ -189,10 +217,8 @@ void Game::checkCollisions() {
             if (platform->hasSpring()) {
                 sf::FloatRect springBounds = platform->getSpringBounds();
                 if (playerBounds.intersects(springBounds) && playerBottom < springBounds.top + GameConfig::COLLISION_TOLERANCE) {
-                    
                     platform->compressSpring();
                     player->superJump();
-                    
                     return; 
                 }
             }
@@ -233,6 +259,15 @@ void Game::render() {
         }
         player->draw(window);
         scoreManager->draw(window, gameView);
+    }
+    else if (currentState == GameState::Paused) {
+        for (const auto& platform : platforms) {
+            platform->draw(window);
+        }
+        player->draw(window);
+        scoreManager->draw(window, gameView);
+        
+        pauseMenu->draw(window);
     }
     else if (currentState == GameState::GameOver) {
         for (const auto& platform : platforms) {

@@ -38,3 +38,10 @@ bool Button::isClicked(const sf::RenderWindow& window, const sf::View& view, con
 void Button::setScale(float scaleX, float scaleY) {
     sprite.setScale(scaleX, scaleY);
 }
+
+void Button::setSize(float targetWidth, float targetHeight) {
+    sf::FloatRect bounds = sprite.getLocalBounds();
+    if (bounds.width > 0.0f && bounds.height > 0.0f) {
+        sprite.setScale(targetWidth / bounds.width, targetHeight / bounds.height);
+    }
+}
