@@ -12,6 +12,8 @@
 #include "ScoreManager.hpp"
 #include "GameOverMenu.hpp"
 #include "PauseMenu.hpp"
+#include "SettingsManager.hpp"
+#include "SettingsMenu.hpp"
 #include <algorithm>
 
 Game::Game() : 
@@ -28,12 +30,19 @@ Game::Game() :
     textureManager.loadResource("platform_normal", "assets/normal_platform.png");
     textureManager.loadResource("platform_moving", "assets/moving_platform.png");
     textureManager.loadResource("platform_broken", "assets/broken_platform.png");
+    textureManager.loadResource("spring", "assets/spring.png");
+    textureManager.loadResource("bg", "assets/background.png");
+    
     textureManager.loadResource("btn_start", "assets/start_button.png");
     textureManager.loadResource("btn_restart", "assets/restart_button.png");
     textureManager.loadResource("btn_menu", "assets/menu_button.png");
     textureManager.loadResource("btn_resume", "assets/resume_button.png");
-    textureManager.loadResource("bg", "assets/background.png");
-    textureManager.loadResource("spring", "assets/spring.png");
+    
+    textureManager.loadResource("btn_settings", "assets/settings_button.png");
+    textureManager.loadResource("btn_easy", "assets/easy_button.png");
+    textureManager.loadResource("btn_medium", "assets/medium_button.png");
+    textureManager.loadResource("btn_hard", "assets/hard_button.png");
+    textureManager.loadResource("btn_back", "assets/back_button.png");
 
     fontManager.loadResource("main_font", "fonts/ariblk.ttf");
 
@@ -42,13 +51,21 @@ Game::Game() :
     backgroundFillSprite.setColor(sf::Color(100, 100, 100)); 
     scaleBackgroundFill(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT);
 
+    settingsManager = std::make_unique<SettingsManager>();
     scoreManager = std::make_unique<ScoreManager>(fontManager.getResource("main_font"));
     
     mainMenu = std::make_unique<MainMenu>(
         fontManager.getResource("main_font"), 
-        textureManager.getResource("btn_start")
+        textureManager.getResource("btn_start"),
+        textureManager.getResource("btn_settings")
     );
-    mainMenu->updateHighScore(scoreManager->getHighScore());
+    mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
+
+    settingsMenu = std::make_unique<SettingsMenu>(
+        fontManager.getResource("main_font"), *settingsManager,
+        textureManager.getResource("btn_easy"), textureManager.getResource("btn_medium"),
+        textureManager.getResource("btn_hard"), textureManager.getResource("btn_back")
+    );
 
     gameOverMenu = std::make_unique<GameOverMenu>(
         fontManager.getResource("main_font"),
@@ -108,7 +125,19 @@ void Game::processEvents() {
                 currentState = GameState::Playing;
                 resetGame();
             }
+            else if (mainMenu->isSettingsClicked(window, gameView, event)) {
+                currentState = GameState::Settings;
+            }
         } 
+        else if (currentState == GameState::Settings) {
+            settingsMenu->processClick(window, gameView, event);
+            
+            if (settingsMenu->isBackClicked(window, gameView, event)) {
+                settingsManager->saveSettings(); 
+                currentState = GameState::Menu;
+                mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
+            }
+        }
         else if (currentState == GameState::Playing) {
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
                 currentState = GameState::Paused;
@@ -124,7 +153,7 @@ void Game::processEvents() {
             else if (pauseMenu->isMenuClicked(window, gameView, event)) {
                 currentState = GameState::Menu;
                 resetGame();
-                mainMenu->updateHighScore(scoreManager->getHighScore());
+                mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
             }
         }
         else if (currentState == GameState::GameOver) {
@@ -135,7 +164,7 @@ void Game::processEvents() {
             else if (gameOverMenu->isMenuClicked(window, gameView, event)) {
                 currentState = GameState::Menu;
                 resetGame();
-                mainMenu->updateHighScore(scoreManager->getHighScore());
+                mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
             }
         }
     }
@@ -173,6 +202,9 @@ void Game::update(sf::Time deltaTime) {
     if (currentState == GameState::Menu) {
         mainMenu->update(window, gameView);
     } 
+    else if (currentState == GameState::Settings) {
+        settingsMenu->update(window, gameView);
+    }
     else if (currentState == GameState::Paused) {
         pauseMenu->update(window, gameView);
     }
@@ -198,11 +230,12 @@ void Game::update(sf::Time deltaTime) {
         
         float scrollOffset = worldManager.update(*player, platforms);
         scoreManager->addOffset(scrollOffset);
-        scoreManager->update(player->getY());
+        
+        scoreManager->update(player->getY(), settingsManager->getDifficulty());
 
         if (player->getY() > gameView.getCenter().y + GameConfig::DEATH_Y_OFFSET) {
             currentState = GameState::GameOver;
-            gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore());
+            gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore(settingsManager->getDifficulty()));
         }
     }
 }
@@ -253,6 +286,9 @@ void Game::render() {
     if (currentState == GameState::Menu) {
         mainMenu->draw(window);
     } 
+    else if (currentState == GameState::Settings) {
+        settingsMenu->draw(window);
+    }
     else if (currentState == GameState::Playing) {
         for (const auto& platform : platforms) {
             platform->draw(window);

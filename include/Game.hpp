@@ -18,12 +18,15 @@
 
 class Player;
 class MainMenu;
-class PauseMenu;
 class ScoreManager;
 class GameOverMenu;
+class PauseMenu;
+class SettingsManager;
+class SettingsMenu;
 
 enum class GameState {
     Menu,
+    Settings,
     Playing,
     Paused,
     GameOver
@@ -52,10 +55,12 @@ private:
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Platform>> platforms;
 
+    std::unique_ptr<SettingsManager> settingsManager;
     std::unique_ptr<ScoreManager> scoreManager;
     std::unique_ptr<MainMenu> mainMenu;
     std::unique_ptr<GameOverMenu> gameOverMenu;
     std::unique_ptr<PauseMenu> pauseMenu;
+    std::unique_ptr<SettingsMenu> settingsMenu;
 
     sf::Sprite backgroundSprite;
     sf::Sprite backgroundFillSprite;
