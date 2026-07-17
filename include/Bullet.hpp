@@ -12,7 +12,8 @@
 #include <memory>
 
 namespace BulletConfig {
-    constexpr float SPEED = 800.0f;
+    constexpr float SPEED = 800.0f; 
+    constexpr float SPRITE_SCALE = 0.07f;
 }
 
 class Bullet {

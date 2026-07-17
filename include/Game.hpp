@@ -1,10 +1,3 @@
-/* ========== Naming Convention Guideline ==========
- * Class names: PascalCase
- * Function names : camelCase
- * Variable names : camelCase
- * Constant names : UPPER_SNAKE_CASE
- * ================================================= */
-
 #ifndef GAME_HPP
 #define GAME_HPP
 
@@ -25,6 +18,7 @@ class GameOverMenu;
 class PauseMenu;
 class SettingsManager; 
 class SettingsMenu;    
+class Bullet;
 
 enum class GameState {
     Menu,
@@ -58,6 +52,9 @@ private:
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<Platform>> platforms;
 
+    sf::Time fireTimer;
+    std::vector<std::unique_ptr<Bullet>> bullets;
+
     std::unique_ptr<SettingsManager> settingsManager; 
     std::unique_ptr<SoundManager> soundManager;
     std::unique_ptr<ScoreManager> scoreManager;
@@ -84,4 +81,4 @@ public:
     void run();
 };
 
-#endif // GAME_HPP
+#endif

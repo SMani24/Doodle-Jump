@@ -1,10 +1,3 @@
-/* ========== Naming Convention Guideline ==========
- * Class names: PascalCase
- * Function names : camelCase
- * Variable names : camelCase
- * Constant names : UPPER_SNAKE_CASE
- * ================================================= */
-
 #include "Game.hpp"
 #include "Player.hpp"
 #include "BreakablePlatform.hpp"
@@ -13,7 +6,8 @@
 #include "GameOverMenu.hpp"
 #include "PauseMenu.hpp"
 #include "SettingsManager.hpp" 
-#include "SettingsMenu.hpp"    
+#include "SettingsMenu.hpp"  
+#include "Bullet.hpp"  
 #include <algorithm>
 
 Game::Game() : 
@@ -21,12 +15,15 @@ Game::Game() :
     gameView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)),
     backgroundView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)),
     currentState(GameState::Menu),
-    worldManager(textureManager) 
+    worldManager(textureManager),
+    fireTimer(sf::seconds(10.0f))
 {
     window.setFramerateLimit(GameConfig::FRAME_RATE); 
 
     textureManager.loadResource("doodle_left", "assets/left_doodle.png");
     textureManager.loadResource("doodle_right", "assets/right_doodle.png");
+    textureManager.loadResource("doodle_shoot", "assets/doodle_shoot.png");
+    textureManager.loadResource("bullet", "assets/bullet.png");
     textureManager.loadResource("platform_normal", "assets/normal_platform.png");
     textureManager.loadResource("platform_moving", "assets/moving_platform.png");
     textureManager.loadResource("platform_broken", "assets/broken_platform.png");
@@ -59,7 +56,7 @@ Game::Game() :
 
     soundManager = std::make_unique<SoundManager>();
     soundManager->setVolume(settingsManager->getVolume());
-    soundManager->playMusic("sounds/MainMenu_Song.flac");
+    soundManager->playMusic("sounds/MainMenu_Song.flac"); 
 
     scoreManager = std::make_unique<ScoreManager>(fontManager.getResource("main_font"));
     
@@ -95,10 +92,12 @@ Game::~Game() = default;
 
 void Game::resetGame() {
     platforms.clear();
+    bullets.clear();
     
     player = std::make_unique<Player>(
         textureManager.getResource("doodle_left"), 
-        textureManager.getResource("doodle_right")
+        textureManager.getResource("doodle_right"),
+        textureManager.getResource("doodle_shoot")
     );
     
     worldManager.generateInitialWorld(platforms);
@@ -215,7 +214,7 @@ void Game::update(sf::Time deltaTime) {
         mainMenu->update(window, gameView);
     } 
     else if (currentState == GameState::Settings) {
-        settingsMenu->update(window, gameView);
+        settingsMenu->update(window, gameView); 
         soundManager->setVolume(settingsManager->getVolume());
     }
     else if (currentState == GameState::Paused) {
@@ -233,6 +232,40 @@ void Game::update(sf::Time deltaTime) {
             player->stopMoving();
         }
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            player->setShooting(true);
+            fireTimer += deltaTime;
+
+            float fireDelay = 0.4f;
+            if (settingsManager->getDifficulty() == Difficulty::Easy) fireDelay = 0.2f;
+            else if (settingsManager->getDifficulty() == Difficulty::Hard) fireDelay = 0.6f;
+
+            if (fireTimer.asSeconds() >= fireDelay) {
+                sf::Vector2f spawnPos = player->getShootPosition();
+                bullets.push_back(std::make_unique<Bullet>(
+                    textureManager.getResource("bullet"), spawnPos.x, spawnPos.y
+                ));
+                soundManager->playSound(*audioManager.getResource("sfx_shoot"));
+                fireTimer = sf::Time::Zero;
+            }
+        } else {
+            player->setShooting(false);
+            fireTimer = sf::seconds(10.0f);
+        }
+
+        for (auto& bullet : bullets) {
+            bullet->update(deltaTime);
+        }
+
+        float topOfCamera = gameView.getCenter().y - (GameConfig::BASE_HEIGHT / 2.0f);
+        bullets.erase(
+            std::remove_if(bullets.begin(), bullets.end(),
+                [topOfCamera](const std::unique_ptr<Bullet>& b) {
+                    return b->getY() < topOfCamera; 
+                }),
+            bullets.end()
+        );
+
         player->update(deltaTime);
         
         for (auto& platform : platforms) {
@@ -248,7 +281,7 @@ void Game::update(sf::Time deltaTime) {
 
         if (player->getY() > gameView.getCenter().y + GameConfig::DEATH_Y_OFFSET) {
             currentState = GameState::GameOver;
-            soundManager->playSound(*audioManager.getResource("sfx_lose"));
+            soundManager->playSound(*audioManager.getResource("sfx_lose")); 
             gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore(settingsManager->getDifficulty()));
         }
     }
@@ -305,21 +338,17 @@ void Game::render() {
     else if (currentState == GameState::Settings) {
         settingsMenu->draw(window);
     }
-    else if (currentState == GameState::Playing) {
+    else if (currentState == GameState::Playing || currentState == GameState::Paused) {
         for (const auto& platform : platforms) {
             platform->draw(window);
         }
-        player->draw(window);
-        scoreManager->draw(window, gameView);
-    }
-    else if (currentState == GameState::Paused) {
-        for (const auto& platform : platforms) {
-            platform->draw(window);
+        for (const auto& bullet : bullets) {
+            bullet->draw(window);
         }
         player->draw(window);
         scoreManager->draw(window, gameView);
         
-        pauseMenu->draw(window);
+        if (currentState == GameState::Paused) pauseMenu->draw(window);
     }
     else if (currentState == GameState::GameOver) {
         for (const auto& platform : platforms) {
