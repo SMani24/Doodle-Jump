@@ -8,7 +8,7 @@
 #include "Bullet.hpp"
 
 Bullet::Bullet(std::shared_ptr<sf::Texture> tex, float startX, float startY) 
-    : posX(startX), posY(startY) 
+    : posX(startX), posY(startY), active(true)
 {
     sprite.setTexture(*tex);
     sprite.setScale(BulletConfig::SPRITE_SCALE, BulletConfig::SPRITE_SCALE);
@@ -32,4 +32,12 @@ float Bullet::getY() const {
 
 sf::FloatRect Bullet::getBounds() const {
     return sprite.getGlobalBounds();
+}
+
+bool Bullet::isActive() const {
+    return active;
+}
+
+void Bullet::deactivate() {
+    active = false;
 }

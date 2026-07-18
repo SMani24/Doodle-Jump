@@ -13,6 +13,8 @@
 #include <SFML/Graphics.hpp>
 #include "Platform.hpp"
 #include "ResourceManager.hpp"
+#include "Monster.hpp"
+#include "SettingsManager.hpp"
 
 class Player;
 
@@ -45,7 +47,9 @@ public:
     ~WorldManager() = default;
 
     void generateInitialWorld(std::vector<std::unique_ptr<Platform>>& platforms);
-    float update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms);
+    
+    float update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms, 
+                 std::vector<std::unique_ptr<Monster>>& monsters, Difficulty diff);
 };
 
-#endif // WORLD_MANAGER_HPP
+#endif

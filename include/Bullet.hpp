@@ -21,6 +21,7 @@ private:
     sf::Sprite sprite;
     float posX;
     float posY;
+    bool active;
 
 public:
     Bullet(std::shared_ptr<sf::Texture> tex, float startX, float startY);
@@ -31,6 +32,9 @@ public:
     
     float getY() const;
     sf::FloatRect getBounds() const;
+
+    bool isActive() const;
+    void deactivate();
 };
 
-#endif // BULLET_HPP
+#endif

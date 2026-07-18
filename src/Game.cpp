@@ -1,3 +1,10 @@
+/* ========== Naming Convention Guideline ==========
+ * Class names: PascalCase
+ * Function names : camelCase
+ * Variable names : camelCase
+ * Constant names : UPPER_SNAKE_CASE
+ * ================================================= */
+
 #include "Game.hpp"
 #include "Player.hpp"
 #include "BreakablePlatform.hpp"
@@ -5,9 +12,10 @@
 #include "ScoreManager.hpp"
 #include "GameOverMenu.hpp"
 #include "PauseMenu.hpp"
-#include "SettingsManager.hpp" 
-#include "SettingsMenu.hpp"  
-#include "Bullet.hpp"  
+#include "SettingsManager.hpp"
+#include "SettingsMenu.hpp"
+#include "Bullet.hpp"
+#include "Monster.hpp"
 #include <algorithm>
 
 Game::Game() : 
@@ -23,18 +31,19 @@ Game::Game() :
     textureManager.loadResource("doodle_left", "assets/left_doodle.png");
     textureManager.loadResource("doodle_right", "assets/right_doodle.png");
     textureManager.loadResource("doodle_shoot", "assets/doodle_shoot.png");
-    textureManager.loadResource("bullet", "assets/bullet.png");
     textureManager.loadResource("platform_normal", "assets/normal_platform.png");
     textureManager.loadResource("platform_moving", "assets/moving_platform.png");
     textureManager.loadResource("platform_broken", "assets/broken_platform.png");
     textureManager.loadResource("spring", "assets/spring.png");
     textureManager.loadResource("bg", "assets/background.png");
+    textureManager.loadResource("bullet", "assets/bullet.png");
+    textureManager.loadResource("monster_blue", "assets/blue_monster.png");
+    textureManager.loadResource("monster_green", "assets/green_monster.png");
     
     textureManager.loadResource("btn_start", "assets/start_button.png");
     textureManager.loadResource("btn_restart", "assets/restart_button.png");
     textureManager.loadResource("btn_menu", "assets/menu_button.png");
     textureManager.loadResource("btn_resume", "assets/resume_button.png");
-    
     textureManager.loadResource("btn_settings", "assets/settings_button.png");
     textureManager.loadResource("btn_easy", "assets/easy_button.png");
     textureManager.loadResource("btn_medium", "assets/medium_button.png");
@@ -53,17 +62,16 @@ Game::Game() :
     scaleBackgroundFill(GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT);
 
     settingsManager = std::make_unique<SettingsManager>();
-
     soundManager = std::make_unique<SoundManager>();
     soundManager->setVolume(settingsManager->getVolume());
-    soundManager->playMusic("sounds/MainMenu_Song.flac"); 
+    soundManager->playMusic("sounds/MainMenu_Song.flac");
 
     scoreManager = std::make_unique<ScoreManager>(fontManager.getResource("main_font"));
     
     mainMenu = std::make_unique<MainMenu>(
         fontManager.getResource("main_font"), 
         textureManager.getResource("btn_start"),
-        textureManager.getResource("btn_settings") 
+        textureManager.getResource("btn_settings")
     );
     mainMenu->updateHighScore(scoreManager->getHighScore(settingsManager->getDifficulty()));
 
@@ -92,6 +100,7 @@ Game::~Game() = default;
 
 void Game::resetGame() {
     platforms.clear();
+    monsters.clear();
     bullets.clear();
     
     player = std::make_unique<Player>(
@@ -123,7 +132,6 @@ void Game::processEvents() {
         if (event.type == sf::Event::Resized) {
             backgroundView.setSize(static_cast<float>(event.size.width), static_cast<float>(event.size.height));
             backgroundView.setCenter(event.size.width / 2.0f, event.size.height / 2.0f);
-            
             adjustViewport(event.size.width, event.size.height);
             scaleBackgroundFill(event.size.width, event.size.height);
         }
@@ -135,12 +143,11 @@ void Game::processEvents() {
                 resetGame();
             }
             else if (mainMenu->isSettingsClicked(window, gameView, event)) {
-                currentState = GameState::Settings; 
+                currentState = GameState::Settings;
             }
         } 
         else if (currentState == GameState::Settings) {
             settingsMenu->processClick(window, gameView, event);
-            
             if (settingsMenu->isBackClicked(window, gameView, event)) {
                 settingsManager->saveSettings(); 
                 currentState = GameState::Menu;
@@ -214,7 +221,7 @@ void Game::update(sf::Time deltaTime) {
         mainMenu->update(window, gameView);
     } 
     else if (currentState == GameState::Settings) {
-        settingsMenu->update(window, gameView); 
+        settingsMenu->update(window, gameView);
         soundManager->setVolume(settingsManager->getVolume());
     }
     else if (currentState == GameState::Paused) {
@@ -261,7 +268,7 @@ void Game::update(sf::Time deltaTime) {
         bullets.erase(
             std::remove_if(bullets.begin(), bullets.end(),
                 [topOfCamera](const std::unique_ptr<Bullet>& b) {
-                    return b->getY() < topOfCamera; 
+                    return b->getY() < topOfCamera || !b->isActive();
                 }),
             bullets.end()
         );
@@ -272,34 +279,78 @@ void Game::update(sf::Time deltaTime) {
             platform->update(deltaTime);
         }
 
+        for (auto& monster : monsters) {
+            monster->update(deltaTime);
+        }
+
+        monsters.erase(
+            std::remove_if(monsters.begin(), monsters.end(),
+                [](const std::unique_ptr<Monster>& m) {
+                    return !m->isAlive();
+                }),
+            monsters.end()
+        );
+
         checkCollisions();
         
-        float scrollOffset = worldManager.update(*player, platforms);
+        float scrollOffset = worldManager.update(*player, platforms, monsters, settingsManager->getDifficulty());
         scoreManager->addOffset(scrollOffset);
         
         scoreManager->update(player->getY(), settingsManager->getDifficulty());
 
         if (player->getY() > gameView.getCenter().y + GameConfig::DEATH_Y_OFFSET) {
             currentState = GameState::GameOver;
-            soundManager->playSound(*audioManager.getResource("sfx_lose")); 
+            soundManager->playSound(*audioManager.getResource("sfx_lose"));
             gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore(settingsManager->getDifficulty()));
         }
     }
 }
 
 void Game::checkCollisions() {
-    if (player->getVelocityY() > 0.0f) {
-        sf::FloatRect playerBounds = player->getBounds();
-        float playerBottom = playerBounds.top + playerBounds.height;
+    for (auto& bullet : bullets) {
+        if (!bullet->isActive()) continue;
         
+        for (auto& monster : monsters) {
+            if (!monster->isAlive()) continue;
+
+            if (bullet->getBounds().intersects(monster->getBounds())) {
+                monster->takeDamage();
+                bullet->deactivate();
+                break;
+            }
+        }
+    }
+
+    sf::FloatRect playerBounds = player->getBounds();
+    float playerBottom = playerBounds.top + playerBounds.height;
+
+    for (auto& monster : monsters) {
+        if (!monster->isAlive()) continue;
+
+        sf::FloatRect monsterBounds = monster->getBounds();
+        
+        if (playerBounds.intersects(monsterBounds)) {
+            if (player->getVelocityY() > 0.0f && playerBottom < monsterBounds.top + (monsterBounds.height / 2.0f)) {
+                player->superJump();
+                soundManager->playSound(*audioManager.getResource("sfx_jump"));
+                monster->takeDamage();
+            } else {
+                currentState = GameState::GameOver;
+                soundManager->playSound(*audioManager.getResource("sfx_lose"));
+                gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore(settingsManager->getDifficulty()));
+                return; 
+            }
+        }
+    }
+
+    if (player->getVelocityY() > 0.0f) {
         for (const auto& platform : platforms) {
-            
             if (platform->hasSpring()) {
                 sf::FloatRect springBounds = platform->getSpringBounds();
                 if (playerBounds.intersects(springBounds) && playerBottom < springBounds.top + GameConfig::COLLISION_TOLERANCE) {
                     platform->compressSpring();
-                    soundManager->playSound(*audioManager.getResource("sfx_jump"));
                     player->superJump();
+                    soundManager->playSound(*audioManager.getResource("sfx_jump"));
                     return; 
                 }
             }
@@ -314,8 +365,8 @@ void Game::checkCollisions() {
                         breakable->breakPlatform();
                     }
                 } else {
-                    soundManager->playSound(*audioManager.getResource("sfx_jump"));
                     player->jump();
+                    soundManager->playSound(*audioManager.getResource("sfx_jump"));
                     return; 
                 }
             }
@@ -338,9 +389,25 @@ void Game::render() {
     else if (currentState == GameState::Settings) {
         settingsMenu->draw(window);
     }
-    else if (currentState == GameState::Playing || currentState == GameState::Paused) {
+    else if (currentState == GameState::Playing) {
         for (const auto& platform : platforms) {
             platform->draw(window);
+        }
+        for (const auto& monster : monsters) {
+            monster->draw(window);
+        }
+        for (const auto& bullet : bullets) {
+            bullet->draw(window);
+        }
+        player->draw(window);
+        scoreManager->draw(window, gameView);
+    }
+    else if (currentState == GameState::Paused) {
+        for (const auto& platform : platforms) {
+            platform->draw(window);
+        }
+        for (const auto& monster : monsters) {
+            monster->draw(window);
         }
         for (const auto& bullet : bullets) {
             bullet->draw(window);
@@ -348,7 +415,7 @@ void Game::render() {
         player->draw(window);
         scoreManager->draw(window, gameView);
         
-        if (currentState == GameState::Paused) pauseMenu->draw(window);
+        pauseMenu->draw(window);
     }
     else if (currentState == GameState::GameOver) {
         for (const auto& platform : platforms) {

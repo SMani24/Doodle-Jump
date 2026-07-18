@@ -9,6 +9,8 @@
 #include "NormalPlatform.hpp"
 #include "MovingPlatform.hpp"
 #include "BreakablePlatform.hpp"
+#include "BlueMonster.hpp"
+#include "GreenMonster.hpp"
 #include "Game.hpp" 
 #include "Player.hpp"
 #include <algorithm>
@@ -87,7 +89,8 @@ void WorldManager::generateInitialWorld(std::vector<std::unique_ptr<Platform>>& 
     }
 }
 
-float WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms) {
+float WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>>& platforms, 
+                           std::vector<std::unique_ptr<Monster>>& monsters, Difficulty diff) {
     float appliedOffset = 0.0f;
     
     if (player.getY() < WorldConfig::SCROLL_THRESHOLD) {
@@ -100,11 +103,28 @@ float WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>
         for (auto& platform : platforms) {
             platform->setY(platform->getY() + appliedOffset);
         }
+        
+        for (auto& monster : monsters) {
+            monster->setY(monster->getY() + appliedOffset);
+        }
     }
 
     while (highestPlatformY > 0.0f) {
         highestPlatformY -= getRandomGap();
         spawnPlatform(platforms, highestPlatformY);
+
+        if (highestPlatformY < 1500.0f) {
+            if (getRandomType() > 9) {
+                float mX = getRandomX();
+                float mY = highestPlatformY - (getRandomGap() / 2.0f);
+                
+                if (getRandomType() > 5) {
+                    monsters.push_back(std::make_unique<BlueMonster>(textureManager.getResource("monster_blue"), mX, mY, diff));
+                } else {
+                    monsters.push_back(std::make_unique<GreenMonster>(textureManager.getResource("monster_green"), mX, mY, diff));
+                }
+            }
+        }
     }
 
     platforms.erase(
@@ -113,6 +133,14 @@ float WorldManager::update(Player& player, std::vector<std::unique_ptr<Platform>
                 return p->getY() > WorldConfig::DESPAWN_Y;
             }),
         platforms.end()
+    );
+
+    monsters.erase(
+        std::remove_if(monsters.begin(), monsters.end(),
+            [](const std::unique_ptr<Monster>& m) {
+                return m->getY() > WorldConfig::DESPAWN_Y;
+            }),
+        monsters.end()
     );
     
     return appliedOffset;

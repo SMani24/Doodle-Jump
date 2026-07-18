@@ -1,3 +1,10 @@
+/* ========== Naming Convention Guideline ==========
+ * Class names: PascalCase
+ * Function names : camelCase
+ * Variable names : camelCase
+ * Constant names : UPPER_SNAKE_CASE
+ * ================================================= */
+
 #ifndef GAME_HPP
 #define GAME_HPP
 
@@ -8,21 +15,22 @@
 #include <vector>
 #include "ResourceManager.hpp"
 #include "WorldManager.hpp"
-#include "Button.hpp"
 #include "SoundManager.hpp"
+#include "Button.hpp"
 
 class Player;
 class MainMenu;
 class ScoreManager;
 class GameOverMenu;
 class PauseMenu;
-class SettingsManager; 
-class SettingsMenu;    
+class SettingsManager;
+class SettingsMenu;
 class Bullet;
+class Monster;
 
 enum class GameState {
     Menu,
-    Settings, 
+    Settings,
     Playing,
     Paused,
     GameOver
@@ -49,19 +57,21 @@ private:
     ResourceManager<sf::SoundBuffer> audioManager;
     WorldManager worldManager;
     
-    std::unique_ptr<Player> player;
-    std::vector<std::unique_ptr<Platform>> platforms;
-
-    sf::Time fireTimer;
-    std::vector<std::unique_ptr<Bullet>> bullets;
-
-    std::unique_ptr<SettingsManager> settingsManager; 
     std::unique_ptr<SoundManager> soundManager;
+    std::unique_ptr<SettingsManager> settingsManager;
     std::unique_ptr<ScoreManager> scoreManager;
+    
     std::unique_ptr<MainMenu> mainMenu;
     std::unique_ptr<GameOverMenu> gameOverMenu;
     std::unique_ptr<PauseMenu> pauseMenu;
-    std::unique_ptr<SettingsMenu> settingsMenu; 
+    std::unique_ptr<SettingsMenu> settingsMenu;
+
+    std::unique_ptr<Player> player;
+    std::vector<std::unique_ptr<Platform>> platforms;
+    std::vector<std::unique_ptr<Monster>> monsters;
+    std::vector<std::unique_ptr<Bullet>> bullets;
+
+    sf::Time fireTimer;
 
     sf::Sprite backgroundSprite;
     sf::Sprite backgroundFillSprite;
