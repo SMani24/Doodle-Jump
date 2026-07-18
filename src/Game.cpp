@@ -24,7 +24,8 @@ Game::Game() :
     backgroundView(sf::FloatRect(0, 0, GameConfig::BASE_WIDTH, GameConfig::BASE_HEIGHT)),
     currentState(GameState::Menu),
     worldManager(textureManager),
-    fireTimer(sf::seconds(10.0f))
+    fireTimer(sf::seconds(10.0f)),
+    isSuckedIntoHole(false)
 {
     window.setFramerateLimit(GameConfig::FRAME_RATE); 
 
@@ -39,6 +40,8 @@ Game::Game() :
     textureManager.loadResource("bullet", "assets/bullet.png");
     textureManager.loadResource("monster_blue", "assets/blue_monster.png");
     textureManager.loadResource("monster_green", "assets/green_monster.png");
+    textureManager.loadResource("hole", "assets/hole.png");
+    textureManager.loadResource("hole_2x", "assets/hole_2x.png");
     
     textureManager.loadResource("btn_start", "assets/start_button.png");
     textureManager.loadResource("btn_restart", "assets/restart_button.png");
@@ -102,6 +105,8 @@ void Game::resetGame() {
     platforms.clear();
     monsters.clear();
     bullets.clear();
+    blackHoles.clear();
+    isSuckedIntoHole = false;
     
     player = std::make_unique<Player>(
         textureManager.getResource("doodle_left"), 
@@ -155,7 +160,7 @@ void Game::processEvents() {
             }
         }
         else if (currentState == GameState::Playing) {
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape && !isSuckedIntoHole) {
                 currentState = GameState::Paused;
             }
         }
@@ -231,6 +236,16 @@ void Game::update(sf::Time deltaTime) {
         gameOverMenu->update(window, gameView);
     }
     else if (currentState == GameState::Playing) {
+        
+        if (isSuckedIntoHole) {
+            player->update(deltaTime);
+            if (player->isSuctionComplete()) {
+                currentState = GameState::GameOver;
+                gameOverMenu->updateScores(scoreManager->getCurrentScore(), scoreManager->getHighScore(settingsManager->getDifficulty()));
+            }
+            return; 
+        }
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             player->moveLeft();
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
@@ -239,13 +254,14 @@ void Game::update(sf::Time deltaTime) {
             player->stopMoving();
         }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-            player->setShooting(true);
-            fireTimer += deltaTime;
+        fireTimer += deltaTime;
 
-            float fireDelay = 0.4f;
-            if (settingsManager->getDifficulty() == Difficulty::Easy) fireDelay = 0.2f;
-            else if (settingsManager->getDifficulty() == Difficulty::Hard) fireDelay = 0.6f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+            player->setShooting(true);
+
+            float fireDelay = GameConfig::FIRE_DELAY_MEDIUM;
+            if (settingsManager->getDifficulty() == Difficulty::Easy) fireDelay = GameConfig::FIRE_DELAY_EASY;
+            else if (settingsManager->getDifficulty() == Difficulty::Hard) fireDelay = GameConfig::FIRE_DELAY_HARD;
 
             if (fireTimer.asSeconds() >= fireDelay) {
                 sf::Vector2f spawnPos = player->getShootPosition();
@@ -257,7 +273,6 @@ void Game::update(sf::Time deltaTime) {
             }
         } else {
             player->setShooting(false);
-            fireTimer = sf::seconds(10.0f);
         }
 
         for (auto& bullet : bullets) {
@@ -293,7 +308,7 @@ void Game::update(sf::Time deltaTime) {
 
         checkCollisions();
         
-        float scrollOffset = worldManager.update(*player, platforms, monsters, settingsManager->getDifficulty());
+        float scrollOffset = worldManager.update(*player, scoreManager->getCurrentScore(), platforms, monsters, blackHoles, settingsManager->getDifficulty());
         scoreManager->addOffset(scrollOffset);
         
         scoreManager->update(player->getY(), settingsManager->getDifficulty());
@@ -307,6 +322,16 @@ void Game::update(sf::Time deltaTime) {
 }
 
 void Game::checkCollisions() {
+    sf::Vector2f playerCenter = player->getCenter();
+    for (auto& hole : blackHoles) {
+        if (hole->getBounds().contains(playerCenter)) {
+            isSuckedIntoHole = true;
+            player->startSuction(hole->getCenter());
+            soundManager->playSound(*audioManager.getResource("sfx_lose"));
+            return; 
+        }
+    }
+
     for (auto& bullet : bullets) {
         if (!bullet->isActive()) continue;
         
@@ -390,6 +415,9 @@ void Game::render() {
         settingsMenu->draw(window);
     }
     else if (currentState == GameState::Playing) {
+        for (const auto& hole : blackHoles) {
+            hole->draw(window);
+        }
         for (const auto& platform : platforms) {
             platform->draw(window);
         }
@@ -403,6 +431,9 @@ void Game::render() {
         scoreManager->draw(window, gameView);
     }
     else if (currentState == GameState::Paused) {
+        for (const auto& hole : blackHoles) {
+            hole->draw(window);
+        }
         for (const auto& platform : platforms) {
             platform->draw(window);
         }

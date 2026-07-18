@@ -17,6 +17,7 @@
 #include "WorldManager.hpp"
 #include "SoundManager.hpp"
 #include "Button.hpp"
+#include "BlackHole.hpp"
 
 class Player;
 class MainMenu;
@@ -43,6 +44,10 @@ namespace GameConfig {
     constexpr unsigned int FRAME_RATE = 60;
     constexpr float COLLISION_TOLERANCE = 15.0f;
     constexpr float DEATH_Y_OFFSET = 300.0f;
+    
+    constexpr float FIRE_DELAY_EASY = 0.2f;
+    constexpr float FIRE_DELAY_MEDIUM = 0.4f;
+    constexpr float FIRE_DELAY_HARD = 0.6f;
 }
 
 class Game {
@@ -70,8 +75,10 @@ private:
     std::vector<std::unique_ptr<Platform>> platforms;
     std::vector<std::unique_ptr<Monster>> monsters;
     std::vector<std::unique_ptr<Bullet>> bullets;
+    std::vector<std::unique_ptr<BlackHole>> blackHoles;
 
     sf::Time fireTimer;
+    bool isSuckedIntoHole;
 
     sf::Sprite backgroundSprite;
     sf::Sprite backgroundFillSprite;
